@@ -62,7 +62,7 @@ def get_logger(name: str) -> logging.Logger:
 
 def find_mp4_files(directory: str) -> List[str]:
     """
-    递归查找目录下的所有 .mp4 文件
+    查找目录下的所有 .mp4 文件（仅第一层，不递归）
     
     Args:
         directory: 搜索目录
@@ -74,11 +74,16 @@ def find_mp4_files(directory: str) -> List[str]:
     if not os.path.exists(directory):
         return mp4_files
     
-    for root, dirs, files in os.walk(directory):
-        for file in files:
+    # 只搜索第一层目录，不递归
+    try:
+        for file in os.listdir(directory):
             if file.lower().endswith('.mp4'):
-                full_path = os.path.join(root, file)
-                mp4_files.append(full_path)
+                full_path = os.path.join(directory, file)
+                # 确保是文件而不是目录
+                if os.path.isfile(full_path):
+                    mp4_files.append(full_path)
+    except PermissionError:
+        logger.warning(f"无法访问目录: {directory}")
     
     # 按文件名排序
     mp4_files.sort()
@@ -126,16 +131,37 @@ def create_work_directory(video_name: str, temp_dir: str = "work") -> str:
     为视频创建工作目录
     
     Args:
-        video_name: 视频文件名（不含扩展名）
+        video_name: 视频文件名（不含扩展名，保留参数以保持接口兼容性）
         temp_dir: 临时目录路径
         
     Returns:
         str: 工作目录路径
     """
-    work_dir = os.path.join(temp_dir, video_name)
-    os.makedirs(work_dir, exist_ok=True)
-    os.makedirs(os.path.join(work_dir, "frames"), exist_ok=True)
-    os.makedirs(os.path.join(work_dir, "restored"), exist_ok=True)
+    # 标准化路径分隔符
+    temp_dir = os.path.normpath(temp_dir)
+    
+    # 确保临时目录存在
+    try:
+        os.makedirs(temp_dir, exist_ok=True)
+    except Exception as e:
+        logger = get_logger(__name__)
+        logger.error(f"无法创建临时目录 {temp_dir}: {e}")
+        raise
+    
+    # 使用时间戳作为临时目录名，确保唯一性
+    import time
+    timestamp = int(time.time() * 1000)  # 毫秒时间戳，确保唯一性
+    work_dir = os.path.join(temp_dir, f"work_{timestamp}")
+    
+    try:
+        os.makedirs(work_dir, exist_ok=True)
+        os.makedirs(os.path.join(work_dir, "frames"), exist_ok=True)
+        os.makedirs(os.path.join(work_dir, "restored"), exist_ok=True)
+    except Exception as e:
+        logger = get_logger(__name__)
+        logger.error(f"无法创建工作目录 {work_dir}: {e}")
+        raise
+    
     return work_dir
 
 

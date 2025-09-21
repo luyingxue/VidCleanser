@@ -5,6 +5,7 @@
 import os
 import time
 import shutil
+from datetime import datetime
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -143,7 +144,8 @@ class VideoProcessor:
             
             # 8. 合成视频
             logger.info("合成视频")
-            output_filename = f"{video_name}_cleaned.mp4"
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_filename = f"{video_name}_cleaned_{timestamp}.mp4"
             output_path = os.path.join(self.config.output_dir, output_filename)
             
             return_code = assemble_video(restored_dir, fps, output_path)
