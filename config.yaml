@@ -1,0 +1,35 @@
+# VidCleanser 配置文件
+# 所有配置项都有默认值，可以只填写需要修改的项
+
+# 输入目录（递归扫描 .mp4 文件）
+input_dir: "E:/videos_in"
+
+# 输出目录（清理后的视频保存位置）
+output_dir: "E:/videos_out"
+
+# 临时工作目录（处理过程中的临时文件）
+temp_dir: "E:/videos_temp"
+
+# IOPaint LaMa API 地址
+lama_api_url: "http://127.0.0.1:8080/api/v1/inpaint"
+
+# 帧级 LaMa 并行数（建议 2-4）
+api_workers: 3
+
+# 角落检测的抽样帧数
+sample_frames: 10
+
+# 掩码宽度比例（相对视频宽度）
+mask_ratio_w: 0.20
+
+# 掩码高度比例（相对视频高度）
+mask_ratio_h: 0.10
+
+# 角落检测模式：lt(左上), rb(右下), lt_rb(两角)
+corners_mode: "lt_rb"
+
+# 轮询扫描间隔（秒）
+scan_interval_sec: 10
+
+# 日志级别：debug/info/warn/error
+log_level: "info"
