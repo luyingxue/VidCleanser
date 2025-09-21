@@ -16,17 +16,6 @@ lama_api_url: "http://127.0.0.1:8080/api/v1/inpaint"
 # 帧级 LaMa 并行数（建议 2-4）
 api_workers: 3
 
-# 角落检测的抽样帧数
-sample_frames: 10
-
-# 掩码宽度比例（相对视频宽度）
-mask_ratio_w: 0.20
-
-# 掩码高度比例（相对视频高度）
-mask_ratio_h: 0.10
-
-# 角落检测模式：lt(左上), rb(右下), lt_rb(两角)
-corners_mode: "lt_rb"
 
 # 轮询扫描间隔（秒）
 scan_interval_sec: 10

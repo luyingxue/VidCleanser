@@ -155,21 +155,22 @@ class IOPaintClient:
             bool: 是否成功
         """
         try:
-            import base64
-            
-            # 读取图像文件并转换为 base64
+            # 读取原始图像和掩码数据
             with open(frame_path, 'rb') as frame_file:
-                frame_data = frame_file.read()
-                frame_base64 = base64.b64encode(frame_data).decode('utf-8')
+                image_data = frame_file.read()
             
-            # 读取掩码文件并转换为 base64
             with open(mask_path, 'rb') as mask_file:
                 mask_data = mask_file.read()
-                mask_base64 = base64.b64encode(mask_data).decode('utf-8')
             
-            # 准备 JSON 请求体
+            import base64
+            
+            # 转换为base64格式
+            image_base64 = base64.b64encode(image_data).decode('utf-8')
+            mask_base64 = base64.b64encode(mask_data).decode('utf-8')
+            
+            # 使用JSON格式发送请求
             payload = {
-                "image": frame_base64,
+                "image": image_base64,
                 "mask": mask_base64,
                 "hd_strategy": "Crop",
                 "hd_strategy_crop_trigger_size": 800,

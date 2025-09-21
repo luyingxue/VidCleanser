@@ -17,10 +17,6 @@ class Config:
     temp_dir: str
     lama_api_url: str
     api_workers: int
-    sample_frames: int
-    mask_ratio_w: float
-    mask_ratio_h: float
-    corners_mode: str
     scan_interval_sec: int
     log_level: str
 
@@ -42,10 +38,6 @@ def load_config(config_path: str = "config.yaml") -> Config:
         "temp_dir": "E:/videos_temp",
         "lama_api_url": "http://127.0.0.1:8080/inpaint",
         "api_workers": 3,
-        "sample_frames": 10,
-        "mask_ratio_w": 0.20,
-        "mask_ratio_h": 0.10,
-        "corners_mode": "lt_rb",
         "scan_interval_sec": 10,
         "log_level": "info"
     }
@@ -65,7 +57,15 @@ def load_config(config_path: str = "config.yaml") -> Config:
     # 校验配置
     _validate_config(default_config)
     
-    return Config(**default_config)
+    return Config(
+        input_dir=default_config["input_dir"],
+        output_dir=default_config["output_dir"],
+        temp_dir=default_config["temp_dir"],
+        lama_api_url=default_config["lama_api_url"],
+        api_workers=default_config["api_workers"],
+        scan_interval_sec=default_config["scan_interval_sec"],
+        log_level=default_config["log_level"]
+    )
 
 
 def _validate_config(config: dict) -> None:
@@ -89,27 +89,11 @@ def _validate_config(config: dict) -> None:
     if not isinstance(api_workers, int) or api_workers < 1 or api_workers > 10:
         raise ValueError("api_workers 必须是 1-10 之间的整数")
     
-    sample_frames = config.get("sample_frames", 10)
-    if not isinstance(sample_frames, int) or sample_frames < 1 or sample_frames > 100:
-        raise ValueError("sample_frames 必须是 1-100 之间的整数")
-    
-    mask_ratio_w = config.get("mask_ratio_w", 0.20)
-    if not isinstance(mask_ratio_w, (int, float)) or mask_ratio_w <= 0 or mask_ratio_w >= 1:
-        raise ValueError("mask_ratio_w 必须是 0-1 之间的数值")
-    
-    mask_ratio_h = config.get("mask_ratio_h", 0.10)
-    if not isinstance(mask_ratio_h, (int, float)) or mask_ratio_h <= 0 or mask_ratio_h >= 1:
-        raise ValueError("mask_ratio_h 必须是 0-1 之间的数值")
-    
     scan_interval_sec = config.get("scan_interval_sec", 10)
     if not isinstance(scan_interval_sec, int) or scan_interval_sec < 1:
         raise ValueError("scan_interval_sec 必须是正整数")
     
     # 校验字符串选项
-    corners_mode = config.get("corners_mode", "lt_rb")
-    if corners_mode not in ["lt", "rb", "lt_rb"]:
-        raise ValueError("corners_mode 必须是 'lt', 'rb' 或 'lt_rb'")
-    
     log_level = config.get("log_level", "info")
     if log_level not in ["debug", "info", "warn", "error"]:
         raise ValueError("log_level 必须是 'debug', 'info', 'warn' 或 'error'")

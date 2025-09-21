@@ -16,10 +16,10 @@ from utils import (
     format_duration, ensure_directory, is_valid_video_file
 )
 from ffmpeg_utils import (
-    probe_video, sample_frames, extract_frames, assemble_video,
+    probe_video, extract_frames, assemble_video,
     cleanup_temp_files, get_frame_count, check_ffmpeg_available
 )
-from mask import detect_corners, build_mask, cleanup_mask, validate_mask
+from mask_fixed import get_fixed_mask, cleanup_mask, validate_mask
 from api_client import IOPaintClient
 
 
@@ -80,29 +80,9 @@ class VideoProcessor:
             logger.info("获取视频信息")
             width, height, fps = probe_video(work_video_path)
             
-            # 3. 抽样帧进行角落检测
-            logger.info("抽样帧进行角落检测")
-            sample_dir = os.path.join(work_dir, "samples")
-            os.makedirs(sample_dir, exist_ok=True)
-            
-            sample_frame_paths = sample_frames(
-                work_video_path, 
-                self.config.sample_frames, 
-                sample_dir
-            )
-            
-            if not sample_frame_paths:
-                logger.error("抽样帧失败")
-                return False
-            
-            # 4. 检测角落水印
-            logger.info("检测角落水印")
-            corners = detect_corners(
-                sample_frame_paths, 
-                width, height,
-                self.config.mask_ratio_w, 
-                self.config.mask_ratio_h
-            )
+            # 3. 根据分辨率获取固定掩码
+            logger.info("根据分辨率获取固定掩码")
+            corners, mask_path = get_fixed_mask(width, height)
             
             if not corners:
                 logger.warning("未检测到水印，跳过处理")
@@ -110,19 +90,11 @@ class VideoProcessor:
             
             logger.info(f"检测到水印位置: {corners}")
             
-            # 5. 生成掩码
-            logger.info("生成掩码")
-            mask_path = build_mask(
-                width, height, corners,
-                self.config.mask_ratio_w, 
-                self.config.mask_ratio_h
-            )
-            
             if not validate_mask(mask_path):
                 logger.error("掩码生成失败")
                 return False
             
-            # 6. 提取所有帧
+            # 4. 提取所有帧
             logger.info("提取所有帧")
             frames_dir = os.path.join(work_dir, "frames")
             extract_frames(work_video_path, frames_dir, fps)
@@ -134,7 +106,7 @@ class VideoProcessor:
             
             logger.info(f"成功提取 {frame_count} 帧")
             
-            # 7. 修复帧
+            # 5. 修复帧
             logger.info("开始修复帧")
             restored_dir = os.path.join(work_dir, "restored")
             
@@ -142,7 +114,7 @@ class VideoProcessor:
                 logger.error("帧修复失败")
                 return False
             
-            # 8. 合成视频
+            # 6. 合成视频
             logger.info("合成视频")
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             output_filename = f"{video_name}_cleaned_{timestamp}.mp4"
@@ -189,11 +161,11 @@ class VideoProcessor:
             return False
         
         finally:
-            # 清理抽样帧
+            # 清理掩码文件
             try:
-                cleanup_temp_files(sample_frame_paths)
+                cleanup_mask(mask_path)
             except Exception as e:
-                logger.warning(f"清理抽样帧失败: {e}")
+                logger.warning(f"清理掩码失败: {e}")
     
     def test_api_connection(self) -> bool:
         """
