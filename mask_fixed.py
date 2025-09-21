@@ -70,50 +70,17 @@ def get_fixed_mask(width: int, height: int) -> Tuple[Set[str], str]:
         logger.error(f"掩码尺寸不匹配: 期望 {width}x{height}, 实际 {mask_width}x{mask_height}")
         return set(), _create_empty_mask(width, height)
     
-    # 检测掩码中的白色区域（水印区域）
-    detected_corners = set()
+    # 根据视频类型返回预定义的角落信息
+    if video_type == 'jimeng':
+        corners = {'lt', 'rb'}  # 即梦视频有左上角和右下角水印
+    elif video_type == 'kling':
+        corners = {'lt', 'rb'}  # 可灵视频有左上角和右下角水印
+    else:
+        corners = set()  # 未知类型，无水印
     
-    # 检查左上角区域是否有水印
-    if _has_watermark_in_region(mask, 'lt', width, height):
-        detected_corners.add('lt')
-        logger.info("检测到左上角水印")
-    
-    # 检查右下角区域是否有水印
-    if _has_watermark_in_region(mask, 'rb', width, height):
-        detected_corners.add('rb')
-        logger.info("检测到右下角水印")
-    
-    logger.info(f"使用固定掩码: {mask_path}, 检测到角落: {detected_corners}")
-    return detected_corners, mask_path
+    logger.info(f"使用固定掩码: {mask_path}, 水印位置: {corners}")
+    return corners, mask_path
 
-def _has_watermark_in_region(mask: np.ndarray, corner: str, width: int, height: int) -> bool:
-    """
-    检查指定角落区域是否有水印
-    
-    Args:
-        mask: 掩码图像
-        corner: 角落类型 'lt' 或 'rb'
-        width: 图像宽度
-        height: 图像高度
-        
-    Returns:
-        bool: 是否有水印
-    """
-    # 定义搜索区域（角落的30%区域）
-    search_ratio = 0.3
-    search_w = int(width * search_ratio)
-    search_h = int(height * search_ratio)
-    
-    if corner == 'lt':
-        # 左上角搜索区域
-        search_region = mask[0:search_h, 0:search_w]
-    else:  # 'rb'
-        # 右下角搜索区域
-        search_region = mask[height-search_h:height, width-search_w:width]
-    
-    # 检查是否有白色像素
-    white_pixels = np.sum(search_region == 255)
-    return white_pixels > 0
 
 def _create_empty_mask(width: int, height: int) -> str:
     """

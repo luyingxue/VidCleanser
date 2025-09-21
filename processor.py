@@ -88,7 +88,7 @@ class VideoProcessor:
                 logger.warning("未检测到水印，跳过处理")
                 return True  # 视为成功，无需处理
             
-            logger.info(f"检测到水印位置: {corners}")
+            logger.info(f"水印位置: {corners}")
             
             if not validate_mask(mask_path):
                 logger.error("掩码生成失败")
