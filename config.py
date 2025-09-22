@@ -19,6 +19,7 @@ class Config:
     api_workers: int
     scan_interval_sec: int
     log_level: str
+    mask_path: str
 
 
 def load_config(config_path: str = "config.yaml") -> Config:
@@ -39,7 +40,8 @@ def load_config(config_path: str = "config.yaml") -> Config:
         "lama_api_url": "http://127.0.0.1:8080/inpaint",
         "api_workers": 3,
         "scan_interval_sec": 10,
-        "log_level": "info"
+        "log_level": "info",
+        "mask_path": "E:/videos_in/jimeng_mask.png"
     }
     
     # 如果配置文件存在，加载并合并
@@ -64,7 +66,8 @@ def load_config(config_path: str = "config.yaml") -> Config:
         lama_api_url=default_config["lama_api_url"],
         api_workers=default_config["api_workers"],
         scan_interval_sec=default_config["scan_interval_sec"],
-        log_level=default_config["log_level"]
+        log_level=default_config["log_level"],
+        mask_path=default_config["mask_path"]
     )
 
 
@@ -97,3 +100,8 @@ def _validate_config(config: dict) -> None:
     log_level = config.get("log_level", "info")
     if log_level not in ["debug", "info", "warn", "error"]:
         raise ValueError("log_level 必须是 'debug', 'info', 'warn' 或 'error'")
+    
+    # 校验掩码文件路径
+    mask_path = config.get("mask_path", "")
+    if not mask_path:
+        raise ValueError("mask_path 不能为空")

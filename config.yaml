@@ -22,3 +22,6 @@ scan_interval_sec: 10
 
 # 日志级别：debug/info/warn/error
 log_level: "info"
+
+# 固定掩码文件路径
+mask_path: "E:/videos_in/jimeng_mask.png"

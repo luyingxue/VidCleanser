@@ -19,7 +19,6 @@ from ffmpeg_utils import (
     probe_video, extract_frames, assemble_video,
     cleanup_temp_files, get_frame_count, check_ffmpeg_available
 )
-from mask_fixed import get_fixed_mask, cleanup_mask, validate_mask
 from api_client import IOPaintClient
 
 
@@ -80,19 +79,10 @@ class VideoProcessor:
             logger.info("获取视频信息")
             width, height, fps = probe_video(work_video_path)
             
-            # 3. 根据分辨率获取固定掩码
-            logger.info("根据分辨率获取固定掩码")
-            corners, mask_path = get_fixed_mask(width, height)
-            
-            if not corners:
-                logger.warning("未检测到水印，跳过处理")
-                return True  # 视为成功，无需处理
-            
-            logger.info(f"水印位置: {corners}")
-            
-            if not validate_mask(mask_path):
-                logger.error("掩码生成失败")
-                return False
+            # 3. 使用配置的固定掩码
+            logger.info("使用配置的固定掩码")
+            mask_path = self.config.mask_path
+            logger.info(f"掩码文件: {mask_path}")
             
             # 4. 提取所有帧
             logger.info("提取所有帧")
@@ -133,7 +123,6 @@ class VideoProcessor:
             # 9. 清理工作目录
             logger.info("清理工作目录")
             cleanup_work_directory(work_dir)
-            cleanup_mask(mask_path)
             
             # 10. 删除原视频
             if os.path.exists(video_path):
@@ -161,11 +150,8 @@ class VideoProcessor:
             return False
         
         finally:
-            # 清理掩码文件
-            try:
-                cleanup_mask(mask_path)
-            except Exception as e:
-                logger.warning(f"清理掩码失败: {e}")
+            # 清理工作目录
+            pass
     
     def test_api_connection(self) -> bool:
         """
